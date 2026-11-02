@@ -1,0 +1,6 @@
+@szabo_KonyvtarApi_HostAddress = http://localhost:5162
+
+GET {{szabo_KonyvtarApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
