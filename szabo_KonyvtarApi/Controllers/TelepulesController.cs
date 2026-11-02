@@ -145,20 +145,28 @@ namespace szabo_KonyvtarApi.Controllers
 
         //Adott településhez jelenítse meg a település nevét és az ott lévő könyvtrak nevét és a megyéjét, név alapján keresve
         [HttpGet("TelepulesKonyvtarai/{telepNev}")]
-
-        public IActionResult TelepulesKonyvtarai(string telepNev) 
+        public IActionResult TelepulesKonyvtarai(string telepNev)
         {
             try
             {
-                List<TelepulesKonyvtarai> result = _context.Telepuleseks.
-                    Include(x => x.Konyvtaraks).
-                    Include(x => x.Megye).
-                    Where(x => x.TelepNev == telepNev).
-                    Select(k => new DTOs.TelepulesKonyvtarai 
+                var result = _context.Telepuleseks
+                    .Where(x => x.TelepNev == telepNev)
+                    .Include(x => x.Konyvtaraks)
+                    .Include(x => x.Megye)
+                    .SelectMany(t => t.Konyvtaraks, (t, k) => new TelepulesKonyvtarai
+                    {
+                        TelepNev = t.TelepNev,
+                        MegyeNev = t.Megye.MegyeNev,
+                        KonyvtarNev = k.KonyvtarNev 
+                    })
+                    .ToList();
+        
+                if (result == null || !result.Any())
                 {
-                    TelepNev = telepNev,
-                    MegyeNev = k.Megye.MegyeNev,
-                }).ToList();
+                    return NotFound($"Nem található a(z) '{telepNev}' nevű település vagy nincsenek hozzá tartozó könyvtárak.");
+                }
+        
+                return Ok(result);
             }
             catch (Exception ex)
             {
